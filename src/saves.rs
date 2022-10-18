@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufReader};
+use std::{fs::File, io::BufReader, path::Path};
 use std::collections::HashMap;
 use std::time::Duration;
 use anyhow::anyhow;
@@ -8,7 +8,7 @@ use quick_xml::{events::Event, reader::Reader, name::QName};
 use crate::levels::{Chapter, Side};
 
 
-pub fn load_save(path: &str) -> anyhow::Result<HashMap<Chapter, AreaModeStats>> {
+pub fn load_save(path: &Path) -> anyhow::Result<HashMap<Chapter, AreaModeStats>> {
     let mut data = HashMap::new();
     let file = File::open(path)?;
     let buf_reader = BufReader::new(file);
