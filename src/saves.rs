@@ -78,7 +78,7 @@ fn find_attr(name: &[u8], tag: &BytesStart) -> anyhow::Result<String> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AreaModeStats {
     pub time_played: Duration,
     pub best_time: Duration,

@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub enum Chapter {
     Prologue, City(Side), Site(Side), Resort(Side), Ridge(Side), Temple(Side), Reflection(Side), Summit(Side), Epilogue, Core(Side), Farewell
 }
@@ -63,7 +63,7 @@ impl Chapter {
     }
 }
 
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub enum Side {
     A, B, C
 }

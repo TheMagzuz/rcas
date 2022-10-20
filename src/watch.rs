@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path, sync::Mutex};
 
 use anyhow::Result;
 use futures::{channel::mpsc::{channel, Receiver}, SinkExt, StreamExt};
@@ -32,6 +32,7 @@ impl AsyncWatcher {
 
     fn create_watcher() -> Result<(RecommendedWatcher, Receiver<HashMap<Chapter, AreaModeStats>>)> {
         let (mut tx, rx) = channel(1);
+        let last_save: Mutex<Option<HashMap<Chapter, AreaModeStats>>> = Mutex::new(None);
 
         let watcher = RecommendedWatcher::new(move |res: notify::Result<Event>| {
             futures::executor::block_on(async {
@@ -41,8 +42,18 @@ impl AsyncWatcher {
                             let path = event.paths.get(0).expect("could not get path for watcher");
                             match crate::saves::load_save(path.as_ref()) {
                                 Ok(data) => {
-                                    if let Err(e) = tx.send(data).await {
-                                        println!("error sending save data from watcher: {:?}", e);
+                                    let already_printed = if let Some(old_data) = last_save.lock().unwrap().as_ref() {
+                                        // We assume that a save file with more chapters completed
+                                        // is more recent than one with fewer completed
+                                        data.len() <= old_data.len()
+                                    } else {
+                                        false
+                                    };
+                                    if !already_printed {
+                                        if let Err(e) = tx.send(data.clone()).await {
+                                            println!("error sending save data from watcher: {:?}", e);
+                                        }
+                                        *last_save.lock().unwrap() = Some(data);
                                     }
                                 },
                                 Err(e) => println!("unable to load save data: {:?}", e),
