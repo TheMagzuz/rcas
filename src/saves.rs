@@ -18,6 +18,7 @@ pub fn load_save(path: &Path) -> anyhow::Result<HashMap<Chapter, AreaModeStats>>
     let mut buf = Vec::new();
     let mut side_index = 0;
     let mut chapter_index: Option<u8> = None;
+    let mut in_areas = false;
 
     loop {
         let event = reader.read_event_into(&mut buf)?;
@@ -25,12 +26,13 @@ pub fn load_save(path: &Path) -> anyhow::Result<HashMap<Chapter, AreaModeStats>>
             Event::Eof => break,
             Event::Start(tag) => {
                 match tag.name().as_ref() {
-                    b"AreaStats" => {
+                    b"Areas" => in_areas = true,
+                    b"AreaStats" if in_areas => {
                         side_index = 0;
                         let chapter = find_attr(b"ID", &tag)?;
                         chapter_index = Some(chapter.parse::<u8>()?);
                     }
-                    b"AreaModeStats" => {
+                    b"AreaModeStats" if in_areas => {
                         let chapter_index = chapter_index.ok_or(anyhow!("Reached an AreaModeStats tag without a chapter index being set"))?;
                         let chapter = Chapter::from_index(chapter_index, Side::from_index(side_index)?)?;
                         side_index += 1;
@@ -46,6 +48,11 @@ pub fn load_save(path: &Path) -> anyhow::Result<HashMap<Chapter, AreaModeStats>>
                     _ => (),
                 }
             },
+            Event::End(tag) => {
+                if tag.name().as_ref() == b"Areas" {
+                    in_areas = false;
+                }
+            }
             _ => (),
         }
     }
