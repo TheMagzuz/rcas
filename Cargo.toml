@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.65"
+futures = "0.3.25"
 notify = "5.0.0"
 quick-xml = "0.25.0"
 serde = { version = "1.0.145", features = ["derive"] }
