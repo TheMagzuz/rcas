@@ -1,26 +1,20 @@
-use std::{path::Path, collections::HashMap};
+use std::collections::HashMap;
 
 use anyhow::Result;
 
+use timer::Timer;
 use levels::Chapter;
 use saves::AreaModeStats;
-use watch::AsyncWatcher;
 
+mod timer;
 mod levels;
 mod saves;
 mod watch;
 
 fn main() -> Result<()> {
-    let path_str = shellexpand::full("$XDG_DATA_HOME/Celeste/Saves/2.celeste")?;
-    let path_str = path_str.as_ref();
-    let path = Path::new(path_str);
 
-    let mut watcher = AsyncWatcher::new(path)?;
-
-    futures::executor::block_on(async {
-        watcher.watch().await;
-    });
-
+    let timer = Timer::new()?;
+    timer.run()?;
     Ok(())
 }
 
