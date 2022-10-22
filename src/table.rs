@@ -30,17 +30,18 @@ impl Table {
         }
     }
 
-    pub fn from_times(times: HashMap<Chapter, AreaModeStats>, route: &[Chapter]) {
+    pub fn from_times(times: HashMap<Chapter, AreaModeStats>, route: &[Chapter]) -> Self {
         let mut table = Table::from_header(vec![("Chapter", 16), ("Time", 7), ("Diff", 5)]);
         for chapter in route {
             let duration_str = if let Some(ams) = times.get(chapter) {
                 // TODO: format this properly
-                format!("{:?}", ams.time_played).as_str()
+                format!("{:?}", ams.time_played)
             } else {
-                "-"
+                "-".to_owned()
             };
-            table.push_row(vec![TableCell::new_default(chapter.to_string().as_str()), TableCell::new_default(duration_str), TableCell::new_default("-")])
+            table.push_row(vec![TableCell::new_default(chapter.to_string().as_str()), TableCell::new_default(duration_str.as_str()), TableCell::new_default("-")])
         }
+        table
     }
 
     pub fn push_row(&mut self, cells: Vec<TableCell>) {
