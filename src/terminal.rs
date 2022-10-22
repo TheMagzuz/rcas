@@ -73,3 +73,9 @@ impl Terminal {
         self.write_status(text, Color::Red)
     }
 }
+
+impl Drop for Terminal {
+    fn drop(&mut self) {
+        self.stdout.execute(crossterm::terminal::LeaveAlternateScreen).unwrap();
+    }
+}
