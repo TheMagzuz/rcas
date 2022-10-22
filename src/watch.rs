@@ -23,10 +23,8 @@ impl AsyncWatcher {
         Ok(Self { watcher, watcher_rx })
     }
 
-    pub async fn watch(&mut self) {
-        while let Some(data) = self.watcher_rx.next().await {
-            crate::print_times(&data);
-        }
+    pub fn watch(self) -> Receiver<HashMap<Chapter, AreaModeStats>>{
+        self.watcher_rx
     }
 
 
