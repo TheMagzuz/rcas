@@ -16,6 +16,7 @@ impl Terminal {
     pub fn new() -> Result<Self> {
         let mut stdout = std::io::stdout();
         stdout.execute(crossterm::terminal::EnterAlternateScreen)?;
+        crossterm::terminal::enable_raw_mode()?;
         Ok(Self {
             enable_color: true,
             stdout,
@@ -65,11 +66,11 @@ impl Terminal {
         self.stdout.flush().context("could not flush stdout while writing table column")
     }
 
-    pub fn write_status(&mut self, text: &str, color: Color) -> Result<&mut Stdout> {
-        self.queue_write_raw(text, color, 0, crossterm::terminal::size()?.1)
+    pub fn write_status(&mut self, text: &str, color: Color) -> Result<()> {
+        self.queue_write_raw(text, color, 0, crossterm::terminal::size()?.1-1)?.flush().context("could not flush stdout while writing status")
     }
 
-    pub fn write_error(&mut self, text: &str) -> Result<&mut Stdout> {
+    pub fn write_error(&mut self, text: &str) -> Result<()> {
         self.write_status(text, Color::Red)
     }
 }
@@ -77,5 +78,6 @@ impl Terminal {
 impl Drop for Terminal {
     fn drop(&mut self) {
         self.stdout.execute(crossterm::terminal::LeaveAlternateScreen).unwrap();
+        crossterm::terminal::disable_raw_mode().unwrap();
     }
 }

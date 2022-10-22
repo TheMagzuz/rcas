@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.65"
-crossterm = "0.25.0"
+crossterm = { version = "0.25.0", features = ["event-stream"] }
 futures = "0.3.25"
 notify = "5.0.0"
 quick-xml = "0.25.0"
