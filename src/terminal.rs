@@ -66,4 +66,12 @@ impl Terminal {
         }
         self.stdout.flush().context("could not flush stdout while writing table column")
     }
+
+    pub fn write_status(&mut self, text: &str, color: Color) -> Result<&mut Stdout> {
+        self.queue_write_raw(text, color, 0, crossterm::terminal::size()?.1)
+    }
+
+    pub fn write_error(&mut self, text: &str) -> Result<&mut Stdout> {
+        self.write_status(text, Color::Red)
+    }
 }
