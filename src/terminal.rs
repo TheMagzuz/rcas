@@ -23,9 +23,7 @@ impl Terminal {
             offset_y: 0,
         })
     }
-}
 
-impl Terminal {
     fn queue_set_foreground_color(&mut self, color: Color) -> Result<&mut Stdout>{
         if !self.enable_color {
             return Ok(&mut self.stdout);
