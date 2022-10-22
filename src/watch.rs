@@ -1,7 +1,7 @@
 use std::{collections::HashMap, path::Path, sync::Mutex};
 
 use anyhow::Result;
-use futures::{channel::mpsc::{channel, Receiver}, SinkExt, StreamExt};
+use futures::{channel::mpsc::{channel, Receiver}, SinkExt};
 use notify::{event::{Event, ModifyKind}, RecommendedWatcher, Watcher, RecursiveMode, EventKind};
 
 use crate::{levels::Chapter, saves::AreaModeStats};
@@ -23,8 +23,8 @@ impl AsyncWatcher {
         Ok(Self { watcher, watcher_rx })
     }
 
-    pub fn watch(self) -> Receiver<HashMap<Chapter, AreaModeStats>>{
-        self.watcher_rx
+    pub fn watch(&mut self) -> &mut Receiver<HashMap<Chapter, AreaModeStats>>{
+        &mut self.watcher_rx
     }
 
 

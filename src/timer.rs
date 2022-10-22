@@ -1,7 +1,7 @@
 use std::{path::Path, sync::Mutex};
 
 use anyhow::Result;
-use futures::{StreamExt};
+use futures::StreamExt;
 
 use crate::{watch::AsyncWatcher, terminal::Terminal, table::Table};
 
@@ -25,9 +25,9 @@ impl Timer {
         })
     }
 
-    pub fn run(self) -> Result<()> {
+    pub fn run(mut self) -> Result<()> {
         futures::executor::block_on(async {
-            let mut rx = self.watcher.watch();
+            let rx = self.watcher.watch();
             while let Some(data) = rx.next().await {
                 let mut term = self.terminal.lock().unwrap();
                 term.write_table(&Table::from_times(data, &crate::levels::ANY_PERCENT_ROUTE)).unwrap();
