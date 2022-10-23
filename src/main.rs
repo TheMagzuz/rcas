@@ -1,10 +1,6 @@
-use std::collections::HashMap;
-
 use anyhow::Result;
 
 use timer::Timer;
-use levels::Chapter;
-use saves::AreaModeStats;
 
 mod timer;
 mod levels;

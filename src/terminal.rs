@@ -32,20 +32,6 @@ impl Terminal {
         self.stdout.queue(SetForegroundColor(color)).context(format!("could not set the foreground color to {:?}", color))
     }
 
-    pub fn clear(&mut self) -> Result<&mut Stdout> {
-        self.stdout.execute(crossterm::terminal::Clear(crossterm::terminal::ClearType::All)).context("could not clear the terminal")
-    }
-
-    pub fn queue_move_cursor(&mut self, x: u16, y: u16) -> Result<&mut Stdout> {
-        let target_x = x + self.offset_x;
-        let target_y = y + self.offset_y;
-        self.stdout.queue(MoveTo(target_x, target_y)).context(format!("could not move the cursor to {}, {}", target_x, target_y))
-    }
-
-    pub fn queue_write_at_current_position(&mut self, text: &str, color: Color) -> Result<&mut Stdout> {
-        self.queue_set_foreground_color(color)?.queue(Print(text)).context("could not write text at current position")
-    }
-
     pub fn queue_write(&mut self, text: &str, color: Color, x: u16, y: u16) -> Result<&mut Stdout>{
         self.queue_write_raw(text, color, x + self.offset_x, y + self.offset_y)
     }

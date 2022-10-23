@@ -2,7 +2,7 @@ use std::{path::Path, sync::Mutex};
 
 use anyhow::Result;
 use futures::{StreamExt, select, future::FutureExt};
-use crossterm::{event::{EventStream, Event, KeyCode}, style::Color};
+use crossterm::event::{EventStream, Event, KeyCode};
 
 use crate::{watch::AsyncWatcher, terminal::Terminal, table::Table};
 
