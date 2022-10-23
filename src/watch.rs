@@ -11,7 +11,7 @@ pub struct AsyncWatcher {
     // watching
     #[allow(dead_code)]
     watcher: RecommendedWatcher,
-    watcher_rx: Receiver<HashMap<Chapter, AreaModeStats>>,
+    pub watcher_rx: Receiver<HashMap<Chapter, AreaModeStats>>,
 }
 
 impl AsyncWatcher {
@@ -22,11 +22,6 @@ impl AsyncWatcher {
 
         Ok(Self { watcher, watcher_rx })
     }
-
-    pub fn watch(&mut self) -> &mut Receiver<HashMap<Chapter, AreaModeStats>>{
-        &mut self.watcher_rx
-    }
-
 
     fn create_watcher() -> Result<(RecommendedWatcher, Receiver<HashMap<Chapter, AreaModeStats>>)> {
         let (mut tx, rx) = channel(1);

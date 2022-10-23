@@ -29,9 +29,9 @@ impl Timer {
 
     pub fn run(mut self) -> Result<()> {
         futures::executor::block_on(async {
-            let rx = self.watcher.watch();
             let mut key_reader = EventStream::new();
             loop {
+                let rx = &mut self.watcher.watcher_rx;
                 let mut recv = rx.next().fuse();
                 let mut key_event = key_reader.next().fuse();
                 select! {
@@ -47,10 +47,9 @@ impl Timer {
                         match maybe_event {
                             Some(Ok(event)) => {
                                 if let Event::Key(key) = event {
-                                    if key.code == KeyCode::Char('q') {
+                                    if self.handle_key(key.code) {
                                         break;
                                     }
-                                    self.terminal.lock().unwrap().write_status(format!("got keycode {:?}", key.code).as_str(), Color::Reset).unwrap();
                                 }
                             },
                             Some(Err(e)) => {self.terminal.lock().unwrap().write_error(format!("error while getting key: {:?}", e).as_str()).unwrap();},
@@ -63,4 +62,11 @@ impl Timer {
         Ok(())
     }
 
+    fn handle_key(&mut self, keycode: KeyCode) -> bool {
+        match keycode {
+            KeyCode::Char('q') => return true,
+            _ => (),
+        }
+        false
+    }
 }
