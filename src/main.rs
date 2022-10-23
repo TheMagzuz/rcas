@@ -18,9 +18,3 @@ fn main() -> Result<()> {
     timer.run()?;
     Ok(())
 }
-
-pub fn print_times(save: &HashMap<Chapter, AreaModeStats>) {
-    for key in levels::ANY_PERCENT_ROUTE {
-        println!("{:?}: {:?}", key.to_string(), save[&key]);
-    }
-}
