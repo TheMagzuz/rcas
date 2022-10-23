@@ -4,7 +4,7 @@ use anyhow::Result;
 use futures::{StreamExt, select, future::FutureExt};
 use crossterm::event::{EventStream, Event, KeyCode};
 
-use crate::{watch::AsyncWatcher, terminal::Terminal, table::Table, levels::Chapter, saves::TimeMap};
+use crate::{watch::AsyncWatcher, terminal::Terminal, table::{Table, TableCell}, levels::Chapter, saves::TimeMap};
 
 const PB_PATH: &str = "pb.json";
 const BEST_SPLITS_PATH: &str = "best_splits.json";
@@ -94,9 +94,9 @@ impl Timer {
     fn on_save_update(&mut self, data: &TimeMap, route: &[Chapter]) -> Result<()> {
         let mut term = self.terminal.lock().unwrap();
         term.write_status_default("got save update!")?;
-        term.write_table(&Table::from_times(&data, route))?;
+        let mut table = Table::from_default_header();
 
-        let mut time = Duration::ZERO;
+        let mut total_time = Duration::ZERO;
 
         let mut pb_total = Duration::ZERO;
         let mut pb_total_running = Duration::ZERO;
@@ -104,11 +104,15 @@ impl Timer {
 
         for chapter in route {
             if let Some(run_time) = data.get(chapter) {
-                time += *run_time;
+                total_time += *run_time;
                 pb_total_running += *self.pb.get(chapter).unwrap_or(zero);
+                table.push_row(vec![TableCell::new_default(chapter.to_string().as_str()), TableCell::new_default(format!("{:?}", run_time).as_str()), TableCell::new_default("-")]);
             }
                 pb_total += *self.pb.get(chapter).unwrap_or(zero);
         }
+
+        table.push_row(vec![TableCell::new_default("Total"), TableCell::new_default(format!("{:?}", total_time).as_str()), TableCell::new_default("-")]);
+        term.write_table(&table)?;
 
         Ok(())
     }
