@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use crossterm::style::Color;
 
-use crate::{levels::Chapter, saves::AreaModeStats};
+use crate::{levels::Chapter, saves::TimeMap};
 
 #[derive(Clone)]
 pub struct TableCell {
@@ -30,7 +28,7 @@ impl Table {
         }
     }
 
-    pub fn from_times(times: HashMap<Chapter, AreaModeStats>, route: &[Chapter]) -> Self {
+    pub fn from_times(times: TimeMap, route: &[Chapter]) -> Self {
         let mut table = Table::from_header(vec![("Chapter", 16), ("Time", 7), ("Diff", 5)]);
         for chapter in route {
             let duration_str = if let Some(ams) = times.get(chapter) {
