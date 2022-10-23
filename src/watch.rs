@@ -1,17 +1,17 @@
-use std::{collections::HashMap, path::Path, sync::Mutex};
+use std::{path::Path, sync::Mutex};
 
 use anyhow::Result;
 use futures::{channel::mpsc::{channel, Receiver}, SinkExt};
 use notify::{event::{Event, ModifyKind}, RecommendedWatcher, Watcher, RecursiveMode, EventKind};
 
-use crate::{levels::Chapter, saves::AreaModeStats};
+use crate::saves::TimeMap;
 
 pub struct AsyncWatcher {
     // This needs to be on the struct, since it will otherwise go out of scope, and therefore stop
     // watching
     #[allow(dead_code)]
     watcher: RecommendedWatcher,
-    pub watcher_rx: Receiver<HashMap<Chapter, AreaModeStats>>,
+    pub watcher_rx: Receiver<TimeMap>,
 }
 
 impl AsyncWatcher {
@@ -23,9 +23,9 @@ impl AsyncWatcher {
         Ok(Self { watcher, watcher_rx })
     }
 
-    fn create_watcher() -> Result<(RecommendedWatcher, Receiver<HashMap<Chapter, AreaModeStats>>)> {
+    fn create_watcher() -> Result<(RecommendedWatcher, Receiver<TimeMap>)> {
         let (mut tx, rx) = channel(1);
-        let last_save: Mutex<Option<HashMap<Chapter, AreaModeStats>>> = Mutex::new(None);
+        let last_save: Mutex<Option<TimeMap>> = Mutex::new(None);
 
         let watcher = RecommendedWatcher::new(move |res: notify::Result<Event>| {
             futures::executor::block_on(async {

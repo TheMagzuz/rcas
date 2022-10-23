@@ -7,8 +7,9 @@ use quick_xml::{events::Event, reader::Reader, name::QName};
 
 use crate::levels::{Chapter, Side};
 
+pub type TimeMap = HashMap<Chapter, AreaModeStats>;
 
-pub fn load_save(path: &Path) -> anyhow::Result<HashMap<Chapter, AreaModeStats>> {
+pub fn load_save(path: &Path) -> anyhow::Result<TimeMap> {
     let mut data = HashMap::new();
     let file = File::open(path)?;
     let buf_reader = BufReader::new(file);
