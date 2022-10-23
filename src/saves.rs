@@ -7,7 +7,7 @@ use quick_xml::{events::Event, reader::Reader, name::QName};
 
 use crate::levels::{Chapter, Side};
 
-pub type TimeMap = HashMap<Chapter, AreaModeStats>;
+pub type TimeMap = HashMap<Chapter, Duration>;
 
 pub fn load_save(path: &Path) -> anyhow::Result<TimeMap> {
     let mut data = HashMap::new();
@@ -44,7 +44,9 @@ pub fn load_save(path: &Path) -> anyhow::Result<TimeMap> {
                         }
                         let best_time = find_attr(b"BestTime", &tag)?.parse::<u64>()?;
 
-                        data.insert(chapter, AreaModeStats::from_u64(time_played, best_time));
+                        if best_time != 0 {
+                            data.insert(chapter,  Duration::from_micros(time_played/10));
+                        }
                     }
                     _ => (),
                 }
@@ -76,20 +78,5 @@ fn find_attr(name: &[u8], tag: &BytesStart) -> anyhow::Result<String> {
         return Ok(std::str::from_utf8(attr?.value.as_ref())?.to_owned());
     } else {
         return Err(anyhow!("Could not find attribute {} on tag {}", std::str::from_utf8(name).unwrap(), std::str::from_utf8(tag.name().as_ref()).unwrap()));
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AreaModeStats {
-    pub time_played: Duration,
-    pub best_time: Duration,
-}
-
-impl AreaModeStats {
-    pub fn from_u64(time_played: u64, best_time: u64) -> Self {
-        Self {
-            time_played: Duration::from_micros(time_played/10),
-            best_time: Duration::from_micros(best_time/10),
-        }
     }
 }
