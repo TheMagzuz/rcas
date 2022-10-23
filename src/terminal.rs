@@ -56,6 +56,10 @@ impl Terminal {
         self.queue_write_raw(text, color, 0, crossterm::terminal::size()?.1-1)?.flush().context("could not flush stdout while writing status")
     }
 
+    pub fn write_status_default(&mut self, text: &str) -> Result<()> {
+        self.write_status(text, Color::Reset)
+    }
+
     pub fn write_error(&mut self, text: &str) -> Result<()> {
         self.write_status(text, Color::Red)
     }
