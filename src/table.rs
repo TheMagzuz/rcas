@@ -28,8 +28,12 @@ impl Table {
         }
     }
 
+    pub fn from_default_header() -> Self {
+         Table::from_header(vec![("Chapter", 16), ("Time", 7), ("Diff", 5)])
+    }
+
     pub fn from_times(times: &TimeMap, route: &[Chapter]) -> Self {
-        let mut table = Table::from_header(vec![("Chapter", 16), ("Time", 7), ("Diff", 5)]);
+        let mut table = Self::from_default_header();
         for chapter in route {
             let duration_str = if let Some(time) = times.get(chapter) {
                 // TODO: format this properly
