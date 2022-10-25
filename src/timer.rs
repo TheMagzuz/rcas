@@ -1,6 +1,6 @@
 use std::{path::Path, sync::Mutex, collections::HashMap, time::Duration, fs::File};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use futures::{StreamExt, select, future::FutureExt};
 use crossterm::event::{EventStream, Event, KeyCode};
 
@@ -125,7 +125,23 @@ impl Timer {
         table.push_row(vec![TableCell::new_default("Total"), TableCell::from_duration(&total_time), TableCell::from_diff(&pb_total_running, &total_time, false)]);
         term.write_table(&table)?;
 
-        Ok(())
+        if data.len() >= route.len() {
+            if total_time <= pb_total {
+                term.write_status("new personal best! congratulations!", crossterm::style::Color::Green)?;
+                self.pb = data.clone();
+            }
+            for chapter in route {
+                let time = data.get(chapter).ok_or(anyhow!("could not get time for chapter {}", chapter.to_string()))?;
+                if let Some(best_split) = self.best_splits.get(chapter) {
+                    if time < best_split {
+                        self.best_splits.insert(chapter.clone(), time.clone());
+                    }
+                }
+            }
+        }
+
+        self.save_data()
+
     }
 
     fn save_data(&self) -> Result<()> {
