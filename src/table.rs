@@ -1,3 +1,4 @@
+use std::time::Duration;
 use crossterm::style::Color;
 
 use crate::{levels::Chapter, saves::TimeMap};
@@ -13,6 +14,23 @@ impl TableCell {
         Self {
             text: text.to_owned(),
             color: Color::Reset,
+        }
+    }
+
+    pub fn from_duration(duration: &Duration) -> Self {
+        Self::new_default(&format_duration(duration))
+    }
+
+    pub fn from_diff(reference: &Duration, other: &Duration, is_best_split: bool) -> Self {
+        Self {
+            text: format_duration_diff(reference, other),
+            color: if is_best_split {
+                Color::Blue
+            } else if other > reference {
+                Color::Red
+            } else {
+                Color::Green
+            }
         }
     }
 }
@@ -68,4 +86,28 @@ impl TableColumn {
     pub fn cells(&self) -> &Vec<TableCell> {
         &self.cells
     }
+}
+
+fn format_duration(duration: &Duration) -> String {
+    let secs_total = duration.as_secs();
+    let mins = secs_total / 60;
+    let secs = secs_total % 60;
+    let millis = duration.subsec_millis();
+    if duration.as_secs() >= 60 {
+        format!("{:02}:{:02}.{:03}", mins, secs, millis)
+    } else {
+        format!("{:02}.{:03}", secs, millis)
+    }
+}
+
+fn format_duration_diff(reference: &Duration, other: &Duration) -> String {
+    let diff = Duration::from_millis(reference.as_millis().abs_diff(other.as_millis()) as u64);
+    let prefix = if other > reference {
+        "+"
+    } else if other == reference {
+        "±"
+    } else {
+        "-"
+    };
+    format!("{}{}", prefix, format_duration(&diff))
 }
