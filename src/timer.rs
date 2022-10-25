@@ -39,8 +39,10 @@ impl Timer {
 
         let best_splits_reader = File::open(BEST_SPLITS_PATH);
         let best_splits = if let Ok(reader) = best_splits_reader {
-            terminal.lock().unwrap().write_error("could not deserialize best splits from file. initializing empty best splits").unwrap();
-            serde_json::from_reader(reader).unwrap_or_else(|_| HashMap::new())
+            serde_json::from_reader(reader).unwrap_or_else(|_| {
+                terminal.lock().unwrap().write_error("could not deserialize best splits from file. initializing empty best splits").unwrap();
+                HashMap::new()
+            })
         } else {
             terminal.lock().unwrap().write_status_default("could not open best splits file. initializing empty best splits").unwrap();
             HashMap::new()
