@@ -100,15 +100,24 @@ impl Timer {
 
         let mut pb_total = Duration::ZERO;
         let mut pb_total_running = Duration::ZERO;
-        let zero = &Duration::ZERO;
 
         for chapter in route {
             if let Some(run_time) = data.get(chapter) {
+                let pb_time = self.pb.get(chapter);
+                let best_split_time = self.best_splits.get(chapter);
                 total_time += *run_time;
-                pb_total_running += *self.pb.get(chapter).unwrap_or(zero);
-                table.push_row(vec![TableCell::new_default(chapter.to_string().as_str()), TableCell::new_default(format!("{:?}", run_time).as_str()), TableCell::new_default("-")]);
+                pb_total_running += *pb_time.unwrap_or(&Duration::ZERO);
+
+                let chapter_cell =TableCell::new_default(chapter.to_string().as_str());
+                let split_time_cell = TableCell::from_duration(run_time);
+                let diff_cell = if let Some(pb_time) = pb_time {
+                    TableCell::from_diff(pb_time, run_time, run_time < best_split_time.unwrap_or(&Duration::MAX))
+                } else {
+                    TableCell::new_default("-")
+                };
+                table.push_row(vec![chapter_cell, split_time_cell, diff_cell]);
             }
-                pb_total += *self.pb.get(chapter).unwrap_or(zero);
+                pb_total += *self.pb.get(chapter).unwrap_or(&Duration::ZERO);
         }
 
         table.push_row(vec![TableCell::new_default("Total"), TableCell::new_default(format!("{:?}", total_time).as_str()), TableCell::new_default("-")]);
