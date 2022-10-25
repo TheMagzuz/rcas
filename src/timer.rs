@@ -108,7 +108,7 @@ impl Timer {
                 total_time += *run_time;
                 pb_total_running += *pb_time.unwrap_or(&Duration::ZERO);
 
-                let chapter_cell =TableCell::new_default(chapter.to_string().as_str());
+                let chapter_cell = TableCell::new_default(chapter.to_string().as_str());
                 let split_time_cell = TableCell::from_duration(run_time);
                 let diff_cell = if let Some(pb_time) = pb_time {
                     TableCell::from_diff(pb_time, run_time, run_time < best_split_time.unwrap_or(&Duration::MAX))
