@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use serde::{Serialize, Deserialize};
 
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[serde(try_from = "String", into = "String")]
 pub enum Chapter {
     Prologue, City(Side), Site(Side), Resort(Side), Ridge(Side), Temple(Side), Reflection(Side), Summit(Side), Epilogue, Core(Side), Farewell
 }
@@ -64,6 +65,38 @@ impl Chapter {
     }
 }
 
+impl std::fmt::Display for Chapter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.to_string())
+    }
+}
+
+impl TryFrom<String> for Chapter {
+    type Error = anyhow::Error;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "Prologue" => Ok(Self::Prologue),
+            "Epilogue" => Ok(Self::Epilogue),
+            "Farewell" => Ok(Self::Farewell),
+            s => {
+                if s.len() != 2 {
+                    return Err(anyhow!("could not convert string '{}' into a chapter", value));
+                }
+                let mut chapter_num = [0; 4];
+                let chapter_num = str::parse(s.chars().nth(0).unwrap().encode_utf8(&mut chapter_num))?;
+                let side = Side::try_from(s.chars().nth(1).unwrap().to_string())?;
+                Chapter::from_index(chapter_num, side)
+            }
+        }
+    }
+}
+
+impl Into<String> for Chapter {
+    fn into(self) -> String {
+        self.to_string()
+    }
+}
+
 #[derive(Hash, Eq, PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Side {
     A, B, C
@@ -83,6 +116,25 @@ impl Side {
             Self::A => "A",
             Self::B => "B",
             Self::C => "C",
+        }
+    }
+}
+
+impl std::fmt::Display for Side {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.to_string())
+    }
+}
+
+impl TryFrom<String> for Side {
+    type Error = anyhow::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "A" => Ok(Self::A),
+            "B" => Ok(Self::B),
+            "C" => Ok(Self::C),
+            _   => Err(anyhow!("invalid side: '{}'", value))
         }
     }
 }
