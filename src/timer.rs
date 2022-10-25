@@ -122,7 +122,7 @@ impl Timer {
                 pb_total += *self.pb.get(chapter).unwrap_or(&Duration::ZERO);
         }
 
-        table.push_row(vec![TableCell::new_default("Total"), TableCell::new_default(format!("{:?}", total_time).as_str()), TableCell::new_default("-")]);
+        table.push_row(vec![TableCell::new_default("Total"), TableCell::from_duration(&total_time), TableCell::from_diff(&pb_total_running, &total_time, false)]);
         term.write_table(&table)?;
 
         Ok(())
