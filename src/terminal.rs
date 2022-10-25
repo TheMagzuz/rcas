@@ -1,7 +1,7 @@
 use std::io::{Stdout, Write};
 
 use anyhow::{Result, Context};
-use crossterm::{QueueableCommand, style::{Color, SetForegroundColor, Print}, ExecutableCommand, cursor::MoveTo};
+use crossterm::{QueueableCommand, style::{Color, SetForegroundColor, Print}, ExecutableCommand, cursor::MoveTo, terminal::{Clear, ClearType}};
 
 use crate::table::Table;
 
@@ -53,6 +53,7 @@ impl Terminal {
     }
 
     pub fn write_status(&mut self, text: &str, color: Color) -> Result<()> {
+        self.queue_clear_status()?;
         self.queue_write_raw(text, color, 0, crossterm::terminal::size()?.1-1)?.flush().context("could not flush stdout while writing status")
     }
 
@@ -62,6 +63,10 @@ impl Terminal {
 
     pub fn write_error(&mut self, text: &str) -> Result<()> {
         self.write_status(text, Color::Red)
+    }
+
+    pub fn queue_clear_status(&mut self) -> Result<&mut Stdout> {
+        self.stdout.queue(MoveTo(0, crossterm::terminal::size()?.1-1)).context("could not move the cursor to the status line")?.queue(Clear(ClearType::CurrentLine)).context("could not clear the current line")
     }
 }
 
