@@ -47,7 +47,7 @@ impl Terminal {
             for (j, cell) in col.cells().iter().enumerate() {
                 self.queue_write(format!("{:>width$}", &cell.text, width=(col.width + 1) as usize).as_str(), cell.color, x_offset, j as u16)?.flush()?;
             }
-            x_offset += col.width + 1;
+            x_offset += col.width + 2;
         }
         self.stdout.flush().context("could not flush stdout while writing table column")
     }

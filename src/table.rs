@@ -92,11 +92,11 @@ fn format_duration(duration: &Duration) -> String {
     let secs_total = duration.as_secs();
     let mins = secs_total / 60;
     let secs = secs_total % 60;
-    let millis = duration.subsec_millis();
+    let millis = duration.subsec_millis()/10;
     if duration.as_secs() >= 60 {
-        format!("{:02}:{:02}.{:03}", mins, secs, millis)
+        format!("{:02}:{:02}.{:02}", mins, secs, millis)
     } else {
-        format!("{:02}.{:03}", secs, millis)
+        format!("{:02}.{:02}", secs, millis)
     }
 }
 
