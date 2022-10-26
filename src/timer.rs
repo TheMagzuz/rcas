@@ -12,8 +12,9 @@ const BEST_SPLITS_PATH: &str = "best_splits.json";
 pub struct Timer {
     watcher: AsyncWatcher,
     terminal: Mutex<Terminal>,
-    pb: HashMap<Chapter, Duration>,
-    best_splits: HashMap<Chapter, Duration>,
+    current_save: Option<TimeMap>,
+    pb: TimeMap,
+    best_splits: TimeMap,
 }
 
 impl Timer {
@@ -21,6 +22,7 @@ impl Timer {
         let path_str = shellexpand::full("$XDG_DATA_HOME/Celeste/Saves/2.celeste")?;
         let path_str = path_str.as_ref();
         let path = Path::new(path_str);
+        let current_save = crate::saves::load_save(path).ok();
 
         let watcher = AsyncWatcher::new(path)?;
 
@@ -51,6 +53,7 @@ impl Timer {
         Ok(Self {
             watcher,
             terminal,
+            current_save,
             pb,
             best_splits,
         })
@@ -59,6 +62,9 @@ impl Timer {
     pub fn run(mut self) -> Result<()> {
         futures::executor::block_on(async {
             let mut key_reader = EventStream::new();
+            if let Err(e) = self.on_save_update(&crate::levels::ANY_PERCENT_ROUTE) {
+                self.terminal.lock().unwrap().write_error(format!("an error occurred: {:?}", e).as_str()).unwrap();
+            }
             loop {
                 let rx = &mut self.watcher.watcher_rx;
                 let mut recv = rx.next().fuse();
@@ -66,7 +72,8 @@ impl Timer {
                 select! {
                     data = recv => {
                         if let Some(data) = data {
-                            if let Err(e) = self.on_save_update(&data, &crate::levels::ANY_PERCENT_ROUTE) {
+                            self.current_save = Some(data);
+                            if let Err(e) = self.on_save_update(&crate::levels::ANY_PERCENT_ROUTE) {
                                 self.terminal.lock().unwrap().write_error(format!("an error occurred: {:?}", e).as_str()).unwrap();
                             }
                         } else {
@@ -93,10 +100,12 @@ impl Timer {
         Ok(())
     }
 
-    fn on_save_update(&mut self, data: &TimeMap, route: &[Chapter]) -> Result<()> {
+    fn on_save_update(&mut self, route: &[Chapter]) -> Result<()> {
         let mut term = self.terminal.lock().unwrap();
         term.write_status_default("got save update!")?;
         let mut table = Table::from_default_header();
+
+        let data = self.current_save.as_ref().ok_or(anyhow!("no current save!"))?;
 
         let mut total_time = Duration::ZERO;
 
