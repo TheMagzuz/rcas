@@ -101,38 +101,12 @@ impl Timer {
     }
 
     fn on_save_update(&mut self, route: &[Chapter]) -> Result<()> {
-        let mut term = self.terminal.lock().unwrap();
-        term.write_status_default("got save update!")?;
-        let mut table = Table::from_default_header();
+
+        self.print_times(route)?;
 
         let data = self.current_save.as_ref().ok_or(anyhow!("no current save!"))?;
-
-        let mut total_time = Duration::ZERO;
-
-        let mut pb_total = Duration::ZERO;
-        let mut pb_total_running = Duration::ZERO;
-
-        for chapter in route {
-            if let Some(run_time) = data.get(chapter) {
-                let pb_time = self.pb.get(chapter);
-                let best_split_time = self.best_splits.get(chapter);
-                total_time += *run_time;
-                pb_total_running += *pb_time.unwrap_or(&Duration::ZERO);
-
-                let chapter_cell = TableCell::new_default(chapter.to_string().as_str());
-                let split_time_cell = TableCell::from_duration(run_time);
-                let diff_cell = if let Some(pb_time) = pb_time {
-                    TableCell::from_diff(pb_time, run_time, run_time < best_split_time.unwrap_or(&Duration::MAX))
-                } else {
-                    TableCell::new_default("-")
-                };
-                table.push_row(vec![chapter_cell, split_time_cell, diff_cell]);
-            }
-                pb_total += *self.pb.get(chapter).unwrap_or(&Duration::ZERO);
-        }
-
-        table.push_row(vec![TableCell::new_default("Total"), TableCell::from_duration(&total_time), TableCell::from_diff(&pb_total_running, &total_time, false)]);
-        term.write_table(&table)?;
+        let TimeTotals { total_time, pb_total, .. } = self.get_time_totals(route);
+        let mut term = self.terminal.lock().unwrap();
 
         if data.len() >= route.len() {
             if total_time <= pb_total {
@@ -148,9 +122,53 @@ impl Timer {
                 }
             }
         }
-
         self.save_data()
 
+    }
+
+    fn print_times(&mut self, route: &[Chapter]) -> Result<()> {
+        let mut term = self.terminal.lock().unwrap();
+        let mut table = Table::from_default_header();
+
+        let TimeTotals { total_time, pb_total_running, .. } = self.get_time_totals(route);
+        let data = self.current_save.as_ref().ok_or(anyhow!("no current save!"))?;
+
+        for chapter in route {
+            if let Some(run_time) = data.get(chapter) {
+                let pb_time = self.pb.get(chapter);
+                let best_split_time = self.best_splits.get(chapter);
+
+                let chapter_cell = TableCell::new_default(chapter.to_string().as_str());
+                let split_time_cell = TableCell::from_duration(run_time);
+                let diff_cell = if let Some(pb_time) = pb_time {
+                    TableCell::from_diff(pb_time, run_time, run_time < best_split_time.unwrap_or(&Duration::MAX))
+                } else {
+                    TableCell::new_default("-")
+                };
+                table.push_row(vec![chapter_cell, split_time_cell, diff_cell]);
+            }
+        }
+        table.push_row(vec![TableCell::new_default("Total"), TableCell::from_duration(&total_time), TableCell::from_diff(&pb_total_running, &total_time, false)]);
+        term.write_table(&table)
+    }
+
+    fn get_time_totals(&self, route: &[Chapter]) -> TimeTotals {
+        let mut total_time = Duration::ZERO;
+
+        let mut pb_total = Duration::ZERO;
+        let mut pb_total_running = Duration::ZERO;
+
+        for chapter in route {
+            if let Some(data) = self.current_save.as_ref() {
+                if let Some(time) = data.get(chapter) {
+                    total_time += *time;
+                    pb_total_running += *self.pb.get(chapter).unwrap_or(&Duration::ZERO);
+                }
+            }
+            pb_total += *self.pb.get(chapter).unwrap_or(&Duration::ZERO);
+        }
+
+        TimeTotals { total_time, pb_total, pb_total_running }
     }
 
     fn save_data(&self) -> Result<()> {
@@ -169,4 +187,10 @@ impl Timer {
         }
         false
     }
+}
+
+struct TimeTotals {
+    total_time: Duration,
+    pb_total: Duration,
+    pb_total_running: Duration,
 }
